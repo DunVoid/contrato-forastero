@@ -1,0 +1,947 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Contrato del Forastero</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=VT323&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* Layout: escenario pixelado a la izquierda, marcadores y mesa de objetos a la derecha; una columna en móvil. Un solo tema oscuro, como el local. */
+:root{
+  --bg:#0a1112;
+  --panel:#0f1a1b;
+  --panel2:#152425;
+  --line:#22393a;
+  --fg:#ddd3c0;
+  --muted:#8d9a93;
+  --term:#a3e6b8;
+  --amber:#e3a548;
+  --blood:#c0322a;
+  --teal:#5fb3ae;
+  --scrim:rgba(5,9,10,.82);
+  --f-display:"VT323", ui-monospace, "Courier New", monospace;
+  --f-body:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  color-scheme:dark;
+}
+html,body{background:var(--bg);color:var(--fg)}
+body{font-family:var(--f-body);font-size:15px;line-height:1.55}
+.wrap{max-width:1180px;margin:0 auto;padding-inline:16px;padding-block:20px 48px}
+header{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px 24px;margin-bottom:16px}
+.eyebrow{font-family:var(--f-display);font-size:20px;letter-spacing:.06em;color:var(--term);text-transform:uppercase;margin:0}
+h1{font-family:var(--f-display);font-weight:400;font-size:clamp(40px,7vw,64px);line-height:.9;margin:2px 0 6px;color:var(--fg);text-wrap:balance}
+.lede{margin:0;color:var(--muted);max-width:62ch}
+.tabs{display:flex;gap:4px;border:1px solid var(--line);padding:3px;background:var(--panel)}
+.tabs button{font-family:var(--f-display);font-size:22px;background:transparent;color:var(--muted);border:0;padding:4px 14px;cursor:pointer}
+.tabs button[aria-selected="true"]{background:var(--panel2);color:var(--term)}
+.tabs button:focus-visible,button:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
+
+/* Juego */
+.game{display:grid;grid-template-columns:minmax(0,1fr) 310px;gap:16px;align-items:start}
+@media (max-width:880px){.game{grid-template-columns:minmax(0,1fr)}}
+.stage{position:relative;aspect-ratio:4/3;width:100%;max-width:100%;background:#000;border:1px solid var(--line);overflow:hidden}
+canvas{display:block;width:100%;height:100%;image-rendering:pixelated;image-rendering:crisp-edges;touch-action:none;cursor:crosshair;user-select:none;-webkit-user-select:none}
+.hint{font-family:var(--f-display);font-size:19px;color:var(--muted);margin:8px 2px 0;line-height:1.2}
+.hint-touch{display:none}
+@media (hover:none) and (pointer:coarse){.hint-touch{display:block}.hint-mouse{display:none}}
+.hint kbd{font-family:inherit;color:var(--term)}
+.card{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:var(--scrim);padding:16px}
+.card-inner{max-width:440px;width:100%;max-height:100%;overflow:auto;border:1px solid var(--line);background:var(--panel);padding:18px 20px}
+.card h2{font-family:var(--f-display);font-weight:400;font-size:34px;line-height:1;margin:0 0 6px;color:var(--amber)}
+.card .act-tag{font-family:var(--f-display);font-size:20px;color:var(--term);letter-spacing:.05em;text-transform:uppercase}
+.card p{margin:8px 0}
+.card .ser{font-style:italic;color:var(--muted);border-left:2px solid var(--blood);padding-left:10px}
+.card .tip{color:var(--term);font-family:var(--f-display);font-size:20px;line-height:1.2}
+.card .stats{font-family:var(--f-display);font-size:21px;line-height:1.25;color:var(--fg)}
+.btn{font-family:var(--f-display);font-size:24px;background:var(--amber);color:#160d04;border:0;padding:6px 18px;cursor:pointer;margin-top:10px}
+.btn.ghost{background:transparent;color:var(--amber);border:1px solid var(--amber)}
+.btn:disabled{opacity:.35;cursor:not-allowed}
+
+.hud{display:flex;flex-direction:column;gap:12px;min-width:0}
+.panel{border:1px solid var(--line);background:var(--panel);padding:12px 14px}
+.panel h3{font-family:var(--f-display);font-weight:400;font-size:22px;margin:0 0 8px;color:var(--term);letter-spacing:.04em;text-transform:uppercase}
+.act{font-family:var(--f-display);font-size:26px;color:var(--amber);line-height:1}
+.pay{display:flex;justify-content:space-between;align-items:baseline;font-family:var(--f-display);font-size:22px;margin-top:6px;font-variant-numeric:tabular-nums}
+.pay b{font-weight:400;color:var(--fg);font-size:28px}
+.meter{display:grid;grid-template-columns:78px minmax(0,1fr) 46px;align-items:center;gap:8px;font-family:var(--f-display);font-size:20px;line-height:1.1;font-variant-numeric:tabular-nums}
+.meter + .meter{margin-top:6px}
+.meter span:last-child{text-align:right}
+.bar{height:10px;background:var(--panel2);border:1px solid var(--line);position:relative}
+.bar>i{display:block;height:100%;width:0;transition:width .15s linear}
+.bar.quota>i{background:var(--amber)}
+.bar.fervor>i{background:var(--term)}
+.bar.sangre>i{background:var(--blood)}
+.bar.miedo>i{background:#b9a27a}
+.bar.nervios>i{background:var(--teal)}
+.knives{display:flex;gap:4px;flex-wrap:wrap;margin-top:8px}
+.knives i{width:10px;height:22px;background:linear-gradient(var(--fg) 0 62%, #5a3c26 62%);clip-path:polygon(50% 0,100% 18%,100% 62%,75% 62%,75% 100%,25% 100%,25% 62%,0 62%,0 18%)}
+.knives i.saved{background:linear-gradient(var(--amber) 0 62%, #5a3c26 62%)}
+.status{font-family:var(--f-display);font-size:19px;line-height:1.2;color:var(--blood);min-height:1.2em;margin-top:8px}
+.status .ok{color:var(--term)}
+.mesa{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+.item{position:relative;text-align:left;background:var(--panel2);border:1px solid var(--line);color:var(--fg);padding:7px 8px 8px;cursor:pointer;font-family:var(--f-body);min-width:0}
+.item:hover:not(:disabled){border-color:var(--amber)}
+.item:disabled{opacity:.38;cursor:not-allowed}
+.item b{display:block;font-family:var(--f-display);font-weight:400;font-size:21px;line-height:1;color:var(--amber);padding-right:28px}
+.item small{display:block;font-size:12px;line-height:1.3;color:var(--muted);margin-top:3px}
+.item .n{position:absolute;top:5px;right:7px;font-family:var(--f-display);font-size:20px;color:var(--term)}
+.item .k{color:var(--muted);font-family:var(--f-display)}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.row .btn{margin-top:0}
+.mute{font-family:var(--f-display);font-size:19px;background:transparent;border:1px solid var(--line);color:var(--muted);padding:3px 10px;cursor:pointer}
+
+/* Sistema */
+.doc{max-width:860px}
+.doc section{margin-block:28px}
+.doc h2{font-family:var(--f-display);font-weight:400;font-size:36px;line-height:1;margin:0 0 8px;color:var(--amber);text-wrap:balance}
+.doc p{max-width:68ch;margin:8px 0}
+.doc .lead{font-size:17px}
+.tbl{overflow-x:auto;border:1px solid var(--line);margin-top:10px}
+table{border-collapse:collapse;width:100%;min-width:560px;font-size:14px}
+th,td{text-align:left;vertical-align:top;padding:8px 10px;border-bottom:1px solid var(--line)}
+th{font-family:var(--f-display);font-weight:400;font-size:19px;color:var(--term);background:var(--panel);letter-spacing:.03em}
+tr:last-child td{border-bottom:0}
+td.num{font-variant-numeric:tabular-nums;white-space:nowrap}
+.cycle{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;margin-top:12px}
+@media (max-width:640px){.cycle{grid-template-columns:minmax(0,1fr)}}
+.cycle div{border:1px solid var(--line);background:var(--panel);padding:10px}
+.cycle b{display:block;font-family:var(--f-display);font-weight:400;font-size:22px;color:var(--amber);line-height:1}
+.cycle span{font-size:13px;color:var(--muted)}
+.note{color:var(--muted);font-size:13px}
+ul.plain{padding-left:18px;margin:8px 0}
+ul.plain li{margin:4px 0;max-width:68ch}
+@media (prefers-reduced-motion:reduce){.bar>i{transition:none}}
+</style>
+
+<div class="wrap">
+  <header>
+    <div>
+      <p class="eyebrow">Prototipo jugable · contrato I</p>
+      <h1>Contrato del Forastero</h1>
+      <p class="lede">Cuatro actos con el mismo hombre atado a la diana. El público paga por lo cerca que clavas; la sangre, los nervios y su miedo se arrastran de un acto a otro.</p>
+    </div>
+    <div class="tabs" role="tablist">
+      <button id="tab-play" role="tab" aria-selected="true" aria-controls="panel-play">Jugar</button>
+      <button id="tab-sys" role="tab" aria-selected="false" aria-controls="panel-sys">Cómo funciona</button>
+    </div>
+  </header>
+
+  <div id="panel-play" role="tabpanel" aria-labelledby="tab-play">
+    <div class="game">
+      <div>
+        <div class="stage">
+          <canvas id="cv" width="320" height="240" aria-label="Escenario: diana con un hombre atado"></canvas>
+          <div class="card" id="card"><div class="card-inner" id="cardInner"></div></div>
+        </div>
+        <p class="hint hint-touch">Deja el dedo para <kbd>contener la respiración</kbd> y apuntar (la mira va por encima del dedo). Levanta para <kbd>lanzar</kbd>.</p>
+        <p class="hint hint-mouse">Mantén pulsado para <kbd>contener la respiración</kbd> (la mira se calma tras un momento; si aguantas demasiado, tiembla más). Suelta para <kbd>lanzar</kbd>. Teclas: <kbd>1–6</kbd> objetos, <kbd>P</kbd> plantarse, <kbd>espacio</kbd> respirar y lanzar.</p>
+      </div>
+
+      <aside class="hud">
+        <div class="panel">
+          <div class="row" style="justify-content:space-between">
+            <div class="act" id="actLabel">Acto I · Calentamiento</div>
+            <button class="mute" id="mute" type="button">Sonido: sí</button>
+          </div>
+          <div class="pay"><span>Pago del acto</span><b id="pay">$0 / $45</b></div>
+          <div class="bar quota"><i id="payBar"></i></div>
+          <div class="pay" style="font-size:19px"><span>Total cobrado</span><span id="total">$0</span></div>
+          <div class="knives" id="knives" aria-label="Cuchillos"></div>
+          <div class="status" id="status"></div>
+          <div class="row" style="margin-top:8px">
+            <button class="btn ghost" id="plantar" type="button" disabled>Plantarse (P)</button>
+          </div>
+        </div>
+
+        <div class="panel">
+          <h3>Marcadores</h3>
+          <div class="meter"><span>Fervor</span><div class="bar fervor"><i id="mFervor"></i></div><span id="vFervor">×1.0</span></div>
+          <div class="meter"><span>Sangre</span><div class="bar sangre"><i id="mSangre"></i></div><span id="vSangre">0</span></div>
+          <div class="meter"><span>Su miedo</span><div class="bar miedo"><i id="mMiedo"></i></div><span id="vMiedo">0</span></div>
+          <div class="meter"><span>Nervios</span><div class="bar nervios"><i id="mNervios"></i></div><span id="vNervios">0</span></div>
+        </div>
+
+        <div class="panel">
+          <h3>La mesa</h3>
+          <div class="mesa" id="mesa"></div>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <div id="panel-sys" role="tabpanel" aria-labelledby="tab-sys" hidden>
+    <article class="doc">
+      <section>
+        <h2>La idea en una línea</h2>
+        <p class="lead">Cada tiro es una apuesta entre dinero y control: clavar cerca paga más, pero asusta al hombre, te altera el pulso y deja menos hueco para el siguiente cuchillo.</p>
+        <div class="cycle" aria-label="Ciclo de un tiro">
+          <div><b>Apuntas</b><span>La mira tiembla según tus nervios. Respirar la calma unos segundos.</span></div>
+          <div><b>Lanzas</b><span>Si tiene miedo, puede encogerse justo cuando el cuchillo vuela.</span></div>
+          <div><b>Clavas</b><span>Cerca paga más y sube el fervor. Tu cuchillo se queda y ocupa ese sitio.</span></div>
+          <div><b>Reacciona</b><span>Sube su miedo y tus nervios. Si le das, sangra y sigue sangrando.</span></div>
+          <div><b>Decides</b><span>Otro tiro, un objeto, o plantarte y guardar cuchillos.</span></div>
+        </div>
+      </section>
+
+      <section>
+        <h2>Los cinco marcadores</h2>
+        <p>La puntería solo controla dónde apuntas. Todo lo demás lo deciden estos marcadores, y cada uno tiene un objeto que lo maneja.</p>
+        <div class="tbl"><table>
+          <thead><tr><th>Marcador</th><th>Sube con</th><th>Baja con</th><th>Qué provoca</th></tr></thead>
+          <tbody>
+            <tr><td>Pago del público</td><td>Tiros cerca, peticiones</td><td>Nada: se acumula</td><td>Pasar la cuota del acto. Lo que cobras es tu dinero.</td></tr>
+            <tr><td>Fervor (×1 a ×3)</td><td>Roces, peticiones y, en voz baja, la sangre</td><td>El tiempo, tiros lejos o fuera</td><td>Multiplica todo lo que paga el público. Apuntar despacio lo enfría.</td></tr>
+            <tr><td>Su miedo</td><td>Tiros cerca, heridas</td><td>Trago al forastero</td><td>Se mueve más a menudo y se encoge al lanzar.</td></tr>
+            <tr><td>Tus nervios</td><td>Cada tiro, roces, choques, heridas</td><td>Cigarrillo; descanso entre actos</td><td>La mira tiembla más.</td></tr>
+            <tr><td>Sangre</td><td>Heridas (según la zona) y hemorragia</td><td>Venda (corta la hemorragia)</td><td>Si se llena, muere y pierdes el contrato.</td></tr>
+          </tbody>
+        </table></div>
+      </section>
+
+      <section>
+        <h2>Por qué la buena puntería no basta</h2>
+        <p>Un jugador con buena mano pasa el primer acto sin objetos, y está bien: es donde aprende. Desde el segundo, la puntería resuelve solo una parte del problema.</p>
+        <ul class="plain">
+          <li><strong>Su respingo es invisible.</strong> Decide moverse cuando ya has lanzado. Solo la Carta Ojo te dice si se moverá y hacia dónde.</li>
+          <li><strong>El tiempo cuesta dinero.</strong> Mientras apuntas con calma, el fervor baja. Precisión y velocidad no caben a la vez sin el cigarrillo.</li>
+          <li><strong>Tus cuchillos te quitan sitio.</strong> Los huecos pegados al cuerpo se llenan; si clavas encima de otro cuchillo, choca y lo pierdes.</li>
+          <li><strong>Una herida no termina.</strong> Sigue sangrando en cada tiro. Sin venda, dos heridas en el acto II pueden matarle en el IV.</li>
+          <li><strong>A oscuras no hay puntería.</strong> En el apagón solo le ves a ratos; la cerilla compra cuatro segundos de luz.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>Cómo crecen los actos del contrato</h2>
+        <p>Cada acto añade una sola regla y nunca quita las anteriores. Lo que pasa en un acto se arrastra al siguiente.</p>
+        <div class="tbl"><table>
+          <thead><tr><th>Acto</th><th>Regla nueva</th><th>Cuota</th><th>Objetos que lo resuelven</th></tr></thead>
+          <tbody>
+            <tr><td>I · Calentamiento</td><td>Se mueve poco y avisa temblando antes de moverse</td><td class="num">$45</td><td>Ninguno: aprendes su ritmo</td></tr>
+            <tr><td>II · Respingos</td><td>Se encoge cuando lanzas; más cuanto más miedo tiene</td><td class="num">$80</td><td>Carta Ojo, trago</td></tr>
+            <tr><td>III · La petición</td><td>El público marca un punto pegado al cuerpo que paga triple</td><td class="num">$140</td><td>Cigarrillo, dados</td></tr>
+            <tr><td>IV · Apagón</td><td>Solo le ves a ratos</td><td class="num">$190</td><td>Cerilla, cuchillos guardados</td></tr>
+          </tbody>
+        </table></div>
+        <ul class="plain">
+          <li><strong>Se arrastra:</strong> sangre, heridas abiertas, objetos, dinero, su miedo (baja un 30 %) y tus nervios (bajan 20).</li>
+          <li><strong>Plantarse:</strong> al llegar a la cuota puedes parar y guardar los cuchillos que te queden para el acto siguiente. Seguir lanzando paga más, pero lo pone más nervioso.</li>
+          <li><strong>Bis:</strong> si superas la cuota en un 50 %, el público tira un objeto al escenario.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>Cómo crecen los contratos</h2>
+        <p>Cada contrato cambia quién está en la diana y una regla del sistema. La mecánica base se mantiene, pero se siente distinta, y lo turbio entra por el contrato que firmas.</p>
+        <div class="tbl"><table>
+          <thead><tr><th>Contrato</th><th>En la diana</th><th>Lo que cambia</th><th>Objeto nuevo</th><th>Lo turbio</th></tr></thead>
+          <tbody>
+            <tr><td>I</td><td>El forastero</td><td>Respingos al lanzar</td><td>—</td><td>Al público le gusta un poco la sangre</td></tr>
+            <tr><td>II</td><td>El borracho</td><td>Se balancea sin parar; el trago no le hace nada</td><td>Cuerda: inmoviliza un brazo</td><td>El camarero le ha servido algo</td></tr>
+            <tr><td>III</td><td>La mujer que reza</td><td>Quieta mientras reza; un roce la hace gritar y agitarse</td><td>Rosario: vuelve a rezar</td><td>Reza tu nombre</td></tr>
+            <tr><td>IV</td><td>Un cadáver</td><td>No se mueve ni sangra; el público paga por herir</td><td>Cuchilla</td><td>Las reglas se invierten y te pagan por hacer lo que antes castigaban</td></tr>
+            <tr><td>V</td><td>Tu ayudante</td><td>Confía en ti; cada herida te dispara los nervios</td><td>Amuleto</td><td>Una cláusula te pide fallar a propósito</td></tr>
+            <tr><td>VI</td><td>Por revelar</td><td>La petición es un ojo</td><td>—</td><td>El momento de gore que lo cambia todo</td></tr>
+          </tbody>
+        </table></div>
+        <p class="note">Propuesta para discutir; solo el contrato I está en el prototipo.</p>
+      </section>
+
+      <section>
+        <h2>Pago, puntos y vida</h2>
+        <p>No hay puntos aparte: lo que paga el público es la puntuación y el dinero. La vida del hombre es un tanque de sangre.</p>
+        <div class="tbl"><table>
+          <thead><tr><th>Dónde clava</th><th>Pago base</th><th>Efecto</th></tr></thead>
+          <tbody>
+            <tr><td>Roce (pegado al cuerpo)</td><td class="num">$30</td><td>Fervor +0,35; su miedo +12</td></tr>
+            <tr><td>Cerca</td><td class="num">$15</td><td>Fervor +0,15; su miedo +6</td></tr>
+            <tr><td>Media distancia</td><td class="num">$6</td><td>—</td></tr>
+            <tr><td>Lejos</td><td class="num">$2</td><td>Fervor −0,15</td></tr>
+            <tr><td>Fuera de la diana</td><td class="num">$0</td><td>Fervor −0,3</td></tr>
+            <tr><td>Sobre la marca de petición</td><td class="num">×3</td><td>Fervor +0,5</td></tr>
+          </tbody>
+        </table></div>
+        <div class="tbl"><table>
+          <thead><tr><th>Herida en</th><th>Sangre</th><th>Además</th></tr></thead>
+          <tbody>
+            <tr><td>Brazo</td><td class="num">+16</td><td rowspan="4">Hemorragia: +3 por cada herida abierta en cada tiro siguiente. Su miedo +30, tus nervios +15. El público no paga, pero el fervor sube un poco.</td></tr>
+            <tr><td>Pierna</td><td class="num">+18</td></tr>
+            <tr><td>Torso</td><td class="num">+30</td></tr>
+            <tr><td>Cabeza</td><td class="num">+55</td></tr>
+          </tbody>
+        </table></div>
+        <p class="note">Todos los valores son provisionales y están pensados para ajustarse jugando.</p>
+      </section>
+
+      <section>
+        <h2>Fallar y repetir</h2>
+        <p>Hay dos formas de perder: que se desangre o quedarte sin cuchillos por debajo de la cuota. Pierdes el contrato entero y vuelves a empezar, pero cada derrota te deja una pista concreta. El segundo intento ya sabes qué guardar para el acto IV.</p>
+      </section>
+    </article>
+  </div>
+</div>
+
+<script>
+(() => {
+  const W = 320, H = 240, BX = 160, BY = 114, BR = 100;
+  const cv = document.getElementById('cv');
+  const ctx = cv.getContext('2d');
+  ctx.imageSmoothingEnabled = false;
+  const $ = (id) => document.getElementById(id);
+  const css = getComputedStyle(document.documentElement);
+  const C = {
+    amber: css.getPropertyValue('--amber').trim() || '#e3a548',
+    term: css.getPropertyValue('--term').trim() || '#a3e6b8',
+    blood: css.getPropertyValue('--blood').trim() || '#c0322a',
+    teal: css.getPropertyValue('--teal').trim() || '#5fb3ae',
+    muted: css.getPropertyValue('--muted').trim() || '#8d9a93',
+    fg: css.getPropertyValue('--fg').trim() || '#ddd3c0'
+  };
+
+  const ACTS = [
+    { n: 'I', name: 'Calentamiento', quota: 45, flinch: false, petition: false, dark: false,
+      rule: 'El forastero apenas se mueve, y cuando va a hacerlo tiembla antes. Aprende su ritmo.',
+      ser: '«Empiece suave. Que le conozcan las manos.»' },
+    { n: 'II', name: 'Respingos', quota: 80, flinch: true, petition: false, dark: false,
+      rule: 'Ahora se encoge cuando lanzas. Cuanto más miedo tiene, más a menudo y más lejos se mueve.',
+      ser: '«No confía en usted. Haga que se equivoque.»' },
+    { n: 'III', name: 'La petición', quota: 140, flinch: true, petition: true, dark: false,
+      rule: 'El público marca un punto pegado al cuerpo. Clavar en la marca paga el triple.',
+      ser: '«Ellos eligen. Usted obedece.»' },
+    { n: 'IV', name: 'Apagón', quota: 190, flinch: true, petition: false, dark: true,
+      rule: 'Las luces fallan. Solo le ves a ratos; tus cuchillos brillan en la oscuridad.',
+      ser: '«A oscuras se aplaude más fuerte.»' }
+  ];
+
+  const ITEMS = {
+    cig: { name: 'Cigarrillo', desc: 'Pulso firme 3 tiros. Nervios −35.', key: '1' },
+    ojo: { name: 'Carta Ojo', desc: 'Ves si se moverá al lanzar, y hacia dónde.', key: '2' },
+    venda: { name: 'Venda', desc: 'Corta la hemorragia.', key: '3' },
+    trago: { name: 'Trago', desc: 'Al forastero: su miedo −45.', key: '4' },
+    cerilla: { name: 'Cerilla', desc: '4 s de luz en el apagón.', key: '5' },
+    dados: { name: 'Dados', desc: 'Si el próximo cuchillo le hiere, se repite el tiro.', key: '6' }
+  };
+  const START_ITEMS = { cig: 2, ojo: 2, venda: 1, trago: 1, cerilla: 1, dados: 1 };
+
+  const LOSS = {
+    sangre: {
+      title: 'Se ha desangrado',
+      text: 'El forastero cuelga quieto de las cuerdas. El público se pone en pie y aplaude. El ser no firma.',
+      tip: 'Cada herida sigue sangrando en cada tiro. La venda corta la hemorragia, y los dados te salvan de una herida.'
+    },
+    cuota: {
+      title: 'El público abuchea',
+      text: 'Te quedaste sin cuchillos por debajo de la cuota. El ser cierra el contrato sin mirarte.',
+      tip: 'Lejos apenas paga. Arriesga en los primeros tiros, cuando tiene menos miedo, y no dejes que el fervor se enfríe. Plantarse antes guarda cuchillos para el apagón.'
+    }
+  };
+
+  const rnd = (a, b) => a + Math.random() * (b - a);
+  const clamp = (v, a = 0, b = 100) => Math.max(a, Math.min(b, v));
+  let attempts = 1;
+  let G = null;
+
+  function newRun() {
+    const p0 = { bx: 0, hx: 0, al: 0, ar: 0, ll: 0, lr: 0 };
+    G = {
+      act: 0, state: 'intro', total: 0, earned: 0, knives: 5, saved: 0, savedShown: 0,
+      sangre: 0, wounds: 0, miedo: 10, nervios: 10, fervor: 1,
+      items: { ...START_ITEMS }, calm: 0, ojo: null, ojoOn: false, dice: false,
+      stuck: [], blood: [], pops: [], flying: null, spot: null,
+      lightT: 0, lightUntil: -1, shake: 0, holding: false, holdT: 0, t: 0,
+      pose: { ...p0 }, target: { ...p0 }, moveT: 2.5, teleg: false, snap: false,
+      aim: { x: 160, y: 96 }, statusMsg: '', statusUntil: 0, endTimer: null
+    };
+  }
+
+  /* ---------- Persona ---------- */
+  function amp() { return 3 + G.miedo * 0.09; }
+  function interval() { return 3.4 - G.miedo * 0.024; }
+  function randomPose() {
+    const A = amp();
+    return { bx: rnd(-A, A), hx: rnd(-A * .8, A * .8), al: rnd(-A * .5, A * .5), ar: rnd(-A * .5, A * .5), ll: rnd(-A * .35, A * .35), lr: rnd(-A * .35, A * .35) };
+  }
+  function caps(p) {
+    const b = p.bx;
+    return [
+      { z: 'pierna', ax: 155 + b, ay: 112, bx: 128 + p.ll + b * .3, by: 178, r: 5 },
+      { z: 'pierna', ax: 165 + b, ay: 112, bx: 192 + p.lr + b * .3, by: 178, r: 5 },
+      { z: 'brazo', ax: 152 + b, ay: 68, bx: 108 + b * .3, by: 40 + p.al, r: 4.5 },
+      { z: 'brazo', ax: 168 + b, ay: 68, bx: 212 + b * .3, by: 40 + p.ar, r: 4.5 },
+      { z: 'torso', ax: 160 + b, ay: 64, bx: 160 + b, by: 112, r: 11 },
+      { z: 'cabeza', ax: 160 + b + p.hx, ay: 52, bx: 160 + b + p.hx, by: 52, r: 9 }
+    ];
+  }
+  function segDist(x, y, c) {
+    const dx = c.bx - c.ax, dy = c.by - c.ay;
+    const L = dx * dx + dy * dy;
+    let t = L ? ((x - c.ax) * dx + (y - c.ay) * dy) / L : 0;
+    t = Math.max(0, Math.min(1, t));
+    return Math.hypot(x - (c.ax + dx * t), y - (c.ay + dy * t));
+  }
+  function decideFlinch() {
+    if (!ACTS[G.act].flinch) return null;
+    const p = Math.min(.9, .12 + G.miedo / 100 * .65);
+    if (Math.random() > p) return null;
+    const s = Math.random() < .5 ? -1 : 1, k = Math.random(), m = 6 + G.miedo * .07;
+    if (k < .45) return { bx: s * m };
+    if (k < .75) return { hx: s * m * .8 };
+    if (k < .88) return { al: -m };
+    return { ar: -m };
+  }
+  function applyDelta(base, d) {
+    const o = { ...base };
+    if (d) for (const k in d) o[k] += d[k];
+    return o;
+  }
+
+  /* ---------- Sonido ---------- */
+  let AC = null, muted = false;
+  try { muted = localStorage.getItem('forastero-mute') === '1'; } catch (e) {}
+  function ensureAudio() {
+    if (!AC) { try { AC = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { AC = null; } }
+    if (AC && AC.state === 'suspended') AC.resume().catch(() => {});
+  }
+  function noise(dur, freq, type, gain) {
+    const len = Math.max(1, Math.floor(AC.sampleRate * dur));
+    const buf = AC.createBuffer(1, len, AC.sampleRate);
+    const d = buf.getChannelData(0);
+    for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+    const src = AC.createBufferSource(); src.buffer = buf;
+    const f = AC.createBiquadFilter(); f.type = type; f.frequency.value = freq;
+    const g = AC.createGain(); const t = AC.currentTime;
+    g.gain.setValueAtTime(gain, t); g.gain.exponentialRampToValueAtTime(.001, t + dur);
+    src.connect(f).connect(g).connect(AC.destination); src.start(t); src.stop(t + dur);
+  }
+  function tone(f0, f1, dur, gain) {
+    const o = AC.createOscillator(); const g = AC.createGain(); const t = AC.currentTime;
+    o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(f1, t + dur);
+    g.gain.setValueAtTime(gain, t); g.gain.exponentialRampToValueAtTime(.001, t + dur);
+    o.connect(g).connect(AC.destination); o.start(t); o.stop(t + dur);
+  }
+  function sfx(k) {
+    if (muted || !AC) return;
+    try {
+      if (k === 'thunk') { noise(.07, 900, 'lowpass', .5); tone(170, 60, .09, .4); }
+      else if (k === 'roce') { noise(.07, 1300, 'lowpass', .55); tone(230, 70, .1, .45); noise(.7, 1500, 'bandpass', .12); }
+      else if (k === 'hit') { noise(.28, 450, 'lowpass', .7); tone(95, 38, .3, .5); noise(.9, 1200, 'bandpass', .14); }
+      else if (k === 'miss') { noise(.14, 300, 'lowpass', .3); }
+      else if (k === 'clank') { tone(950, 720, .09, .22); tone(1400, 1150, .07, .14); }
+      else if (k === 'item') { tone(480, 720, .09, .14); }
+      else if (k === 'whoosh') { noise(.18, 2200, 'bandpass', .12); }
+    } catch (e) {}
+  }
+
+  /* ---------- Fondo y diana precalculados ---------- */
+  function makeCanvas(w, h) { const c = document.createElement('canvas'); c.width = w; c.height = h; return c; }
+  const bgC = makeCanvas(W, H);
+  (() => {
+    const g = bgC.getContext('2d');
+    g.fillStyle = '#0b1416'; g.fillRect(0, 0, W, H);
+    for (let x = 0; x < W; x += 12) { g.fillStyle = x % 24 ? '#0e1a1b' : '#0c1718'; g.fillRect(x, 0, 11, 214); g.fillStyle = '#070d0e'; g.fillRect(x + 11, 0, 1, 214); }
+    for (let i = 0; i < 900; i++) { g.fillStyle = Math.random() < .5 ? 'rgba(0,0,0,.25)' : 'rgba(80,120,115,.05)'; g.fillRect(Math.random() * W | 0, Math.random() * 214 | 0, 1, 1); }
+    const sp = g.createRadialGradient(BX, BY - 10, 10, BX, BY, 150);
+    sp.addColorStop(0, 'rgba(227,165,72,.22)'); sp.addColorStop(1, 'rgba(227,165,72,0)');
+    g.fillStyle = sp; g.fillRect(0, 0, W, H);
+    g.fillStyle = '#24180f'; g.fillRect(0, 214, W, 26);
+    for (let x = 0; x < W; x += 20) { g.fillStyle = '#1a110a'; g.fillRect(x, 214, 1, 26); }
+    g.fillStyle = '#3a2819'; g.fillRect(0, 214, W, 2);
+  })();
+  const boardC = makeCanvas(BR * 2 + 4, BR * 2 + 4);
+  (() => {
+    const g = boardC.getContext('2d'); const c = BR + 2;
+    g.fillStyle = '#3d2a1c'; g.beginPath(); g.arc(c, c, BR, 0, 7); g.fill();
+    const rings = [96, 82, 68, 54, 40, 26, 12];
+    rings.forEach((r, i) => { g.fillStyle = i % 2 ? '#c6b597' : '#8f2a22'; g.beginPath(); g.arc(c, c, r, 0, 7); g.fill(); });
+    for (let i = 0; i < 2600; i++) {
+      const a = Math.random() * 7, r = Math.sqrt(Math.random()) * BR;
+      g.fillStyle = Math.random() < .7 ? 'rgba(0,0,0,.16)' : 'rgba(255,240,210,.06)';
+      g.fillRect(c + Math.cos(a) * r | 0, c + Math.sin(a) * r | 0, 1, 1);
+    }
+    for (let i = 0; i < 60; i++) { const a = Math.random() * 7, r = Math.random() * (BR - 6); g.fillStyle = 'rgba(20,10,5,.55)'; g.fillRect(c + Math.cos(a) * r | 0, c + Math.sin(a) * r | 0, 2, 1); }
+    g.fillStyle = '#8a8f8f'; g.fillRect(c - 1, 3, 2, 2); g.fillRect(c - 1, BR * 2 - 1, 2, 2);
+  })();
+  const vigC = makeCanvas(W, H);
+  (() => {
+    const g = vigC.getContext('2d');
+    const v = g.createRadialGradient(W / 2, H / 2, 70, W / 2, H / 2, 210);
+    v.addColorStop(0, 'rgba(0,0,0,0)'); v.addColorStop(1, 'rgba(0,0,0,.78)');
+    g.fillStyle = v; g.fillRect(0, 0, W, H);
+  })();
+
+  /* ---------- Dibujo ---------- */
+  function drawCapsule(c, color, jit) {
+    ctx.strokeStyle = color; ctx.fillStyle = color;
+    if (c.ax === c.bx && c.ay === c.by) { ctx.beginPath(); ctx.arc(c.ax + jit, c.ay, c.r, 0, 7); ctx.fill(); return; }
+    ctx.lineWidth = c.r * 2; ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(c.ax + jit, c.ay); ctx.lineTo(c.bx + jit * .3, c.by); ctx.stroke();
+  }
+  function drawPerson(p, ghost) {
+    const cs = caps(p);
+    const jit = (!ghost && G.teleg) ? (Math.random() - .5) * 1.6 : 0;
+    if (ghost) {
+      ctx.globalAlpha = .75;
+      cs.forEach(c => drawCapsule({ ...c, r: c.r + 1.5 }, C.teal, 0));
+      ctx.globalAlpha = 1;
+      return;
+    }
+    const [lL, lR, aL, aR, torso, head] = cs;
+    drawCapsule(lL, '#3b3430', jit); drawCapsule(lR, '#3b3430', jit);
+    drawCapsule(aL, '#a39882', jit); drawCapsule(aR, '#a39882', jit);
+    drawCapsule(torso, '#b1a68f', jit);
+    ctx.fillStyle = '#4a3b2c'; ctx.fillRect(torso.ax - 6 + jit, 64, 2, 46); ctx.fillRect(torso.ax + 4 + jit, 64, 2, 46);
+    ctx.fillStyle = '#2b2420'; ctx.fillRect(torso.ax - 11 + jit, 104, 22, 3);
+    [aL, aR].forEach(a => { ctx.fillStyle = '#b8896a'; ctx.beginPath(); ctx.arc(a.bx + jit * .3, a.by, 3.2, 0, 7); ctx.fill(); });
+    [lL, lR].forEach(l => { ctx.fillStyle = '#1c1714'; ctx.fillRect(l.bx - 3 + jit * .3, l.by, 6, 4); });
+    drawCapsule(head, '#b8896a', jit);
+    ctx.fillStyle = '#3a2a1e'; ctx.beginPath(); ctx.arc(head.ax + jit, head.ay - 4, 8, Math.PI, 0); ctx.fill();
+    const hx = head.ax + jit, hy = head.ay;
+    if (G.miedo > 60) {
+      ctx.fillStyle = '#e8e2d4'; ctx.fillRect(hx - 5, hy - 1, 3, 3); ctx.fillRect(hx + 2, hy - 1, 3, 3);
+      ctx.fillStyle = '#111'; ctx.fillRect(hx - 4, hy, 1, 1); ctx.fillRect(hx + 3, hy, 1, 1);
+      ctx.fillRect(hx - 2, hy + 4, 4, 2);
+    } else {
+      ctx.fillStyle = '#1a120d'; ctx.fillRect(hx - 4, hy, 2, 1); ctx.fillRect(hx + 2, hy, 2, 1);
+      ctx.fillRect(hx - 2, hy + 4, 4, 1);
+    }
+    ctx.fillStyle = '#6b4b2a';
+    [aL, aR].forEach(a => ctx.fillRect(a.bx - 4 + jit * .3, a.by + 2, 8, 2));
+    [lL, lR].forEach(l => ctx.fillRect(l.bx - 4 + jit * .3, l.by - 4, 8, 2));
+    ctx.fillRect(torso.ax - 12 + jit, 84, 24, 2);
+  }
+  function drawKnifeStuck(k) {
+    ctx.fillStyle = 'rgba(0,0,0,.55)'; ctx.fillRect(k.x - 1, k.y, 4, 4);
+    ctx.fillStyle = '#3a2618'; ctx.fillRect(k.x - 2, k.y - 2, 4, 4);
+    ctx.fillStyle = '#8b6a4a'; ctx.fillRect(k.x - 2, k.y - 2, 2, 1);
+    ctx.fillStyle = '#cfd5d6'; ctx.fillRect(k.x - 1, k.y - 1, 1, 1);
+    if (k.b) { ctx.fillStyle = '#7a0f0f'; ctx.fillRect(k.x + 1, k.y + 2, 1, 3); }
+  }
+  function visible() {
+    if (!ACTS[G.act] || !ACTS[G.act].dark || G.state !== 'play') return true;
+    if (G.t < G.lightUntil) return true;
+    return (G.lightT % 2.3) < .9;
+  }
+  function draw() {
+    ctx.save();
+    ctx.clearRect(0, 0, W, H);
+    if (G.shake > 0) ctx.translate(Math.round((Math.random() - .5) * G.shake), Math.round((Math.random() - .5) * G.shake));
+    ctx.drawImage(bgC, 0, 0);
+    if (G.sangre > 0) {
+      ctx.fillStyle = '#5a0b0b';
+      const w = 6 + G.sangre * .7;
+      ctx.beginPath(); ctx.ellipse(BX, 222, w, 3 + G.sangre * .04, 0, 0, 7); ctx.fill();
+    }
+    ctx.drawImage(boardC, BX - BR - 2, BY - BR - 2);
+    const vis = visible();
+    if (vis && G.ojoOn && G.ojo) drawPerson(applyDelta(G.pose, G.ojo), true);
+    if (vis) drawPerson(G.pose, false);
+    G.blood.forEach(b => { ctx.fillStyle = b.c; ctx.fillRect(b.x | 0, b.y | 0, b.w, b.h); });
+    G.stuck.forEach(drawKnifeStuck);
+    if (vis && G.ojoOn) {
+      if (!G.ojo) { ctx.font = '10px VT323, monospace'; ctx.textAlign = 'center'; ctx.fillStyle = C.teal; ctx.fillText('NO SE MOVERÁ', BX, 32); }
+    }
+    if (vis && G.spot) {
+      const pulse = 1 + Math.sin(G.t * 8) * .6;
+      ctx.strokeStyle = C.amber; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.arc(G.spot.x, G.spot.y, G.spot.r + pulse, 0, 7); ctx.stroke();
+      ctx.fillStyle = C.amber; ctx.fillRect(G.spot.x | 0, G.spot.y | 0, 1, 1);
+    }
+    if (!vis) {
+      ctx.fillStyle = 'rgba(2,5,6,.94)'; ctx.fillRect(-4, -4, W + 8, H + 8);
+      ctx.strokeStyle = 'rgba(198,181,151,.08)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(BX, BY, BR - 1, 0, 7); ctx.stroke();
+      G.stuck.forEach(k => { ctx.fillStyle = (Math.sin(G.t * 6 + k.x) > 0) ? C.amber : '#7a5a2a'; ctx.fillRect(k.x - 1, k.y - 1, 1, 1); });
+    }
+    if (G.flying) {
+      const f = G.flying, t = f.t;
+      const x = f.x0 + (f.x1 - f.x0) * t, y = f.y0 + (f.y1 - f.y0) * t - Math.sin(t * Math.PI) * 18;
+      const s = 14 * (1 - t) + 3, a = t * 14;
+      ctx.save(); ctx.translate(x, y); ctx.rotate(a);
+      ctx.strokeStyle = '#d3d8d9'; ctx.lineWidth = Math.max(1, s * .22);
+      ctx.beginPath(); ctx.moveTo(-s / 2, 0); ctx.lineTo(s * .15, 0); ctx.stroke();
+      ctx.strokeStyle = '#4a2f1c'; ctx.beginPath(); ctx.moveTo(s * .15, 0); ctx.lineTo(s / 2, 0); ctx.stroke();
+      ctx.restore();
+    }
+    if (G.state === 'play') {
+      const s = sway(); const rx = Math.round(G.aim.x + s.x), ry = Math.round(G.aim.y + s.y);
+      const bm = breathMult();
+      ctx.fillStyle = bm > 1 ? (Math.sin(G.t * 30) > 0 ? C.blood : C.amber) : (G.holding && bm < .6 ? C.teal : C.amber);
+      ctx.fillRect(rx - 6, ry, 4, 1); ctx.fillRect(rx + 3, ry, 4, 1);
+      ctx.fillRect(rx, ry - 6, 1, 4); ctx.fillRect(rx, ry + 3, 1, 4);
+      ctx.fillRect(rx, ry, 1, 1);
+      if (G.holding) {
+        const w = Math.min(1, G.holdT / 2.2) * 14;
+        ctx.fillStyle = 'rgba(0,0,0,.6)'; ctx.fillRect(rx - 7, ry + 9, 15, 3);
+        ctx.fillStyle = bm > 1 ? C.blood : C.teal; ctx.fillRect(rx - 7, ry + 10, w | 0, 1);
+      }
+    }
+    ctx.textAlign = 'center'; ctx.font = '11px VT323, monospace';
+    G.pops.forEach(p => {
+      ctx.globalAlpha = Math.max(0, 1 - p.t / 1.2);
+      ctx.fillStyle = '#000'; ctx.fillText(p.txt, p.x + 1, p.y + 1);
+      ctx.fillStyle = p.c; ctx.fillText(p.txt, p.x, p.y);
+    });
+    ctx.globalAlpha = 1;
+    ctx.drawImage(vigC, 0, 0);
+    ctx.restore();
+  }
+
+  /* ---------- Mira ---------- */
+  function breathMult() {
+    if (!G.holding) return 1;
+    const t = G.holdT;
+    if (t < .7) return 1 - .7 * (t / .7);
+    if (t < 2.2) return .3;
+    return 2.1;
+  }
+  function sway() {
+    const A = (1.5 + G.nervios * .11) * breathMult() * (G.calm > 0 ? .5 : 1);
+    const t = G.t;
+    return { x: A * (Math.sin(t * 1.7) * .6 + Math.sin(t * 2.9 + 1) * .4), y: A * (Math.cos(t * 1.3) * .6 + Math.sin(t * 3.7 + 2) * .4) };
+  }
+
+  /* ---------- Juego ---------- */
+  function pop(x, y, txt, c) { G.pops.push({ x, y: y - 6, txt, c, t: 0 }); }
+  function addBlood(x, y, n) {
+    for (let i = 0; i < n; i++) G.blood.push({ x: x + rnd(-2, 2), y: y + rnd(-1, 4), w: 1, h: 1 + (Math.random() * 3 | 0), c: Math.random() < .5 ? '#7a0f0f' : '#9c1a14' });
+  }
+  function flash(msg) { G.statusMsg = msg; G.statusUntil = G.t + 2.2; hud(); }
+
+  function throwKnife() {
+    if (!G || G.state !== 'play' || G.flying || G.knives <= 0) return;
+    const s = sway();
+    const x = G.aim.x + s.x, y = G.aim.y + s.y;
+    G.knives--; G.holding = false; G.holdT = 0;
+    const fl = G.ojoOn ? G.ojo : decideFlinch();
+    G.ojoOn = false; G.ojo = null;
+    G.target = applyDelta(G.pose, fl);
+    G.snap = !!fl;
+    G.flying = { x0: 160 + rnd(-14, 14), y0: H + 16, x1: x, y1: y, t: 0, dur: .26 };
+    G.moveT = Math.max(G.moveT, .8); G.teleg = false;
+    sfx('whoosh');
+    hud();
+  }
+
+  function impact(x, y) {
+    G.nervios = clamp(G.nervios + 2);
+    if (Math.hypot(x - BX, y - BY) > BR - 1) {
+      pop(x, Math.min(y, 200), 'FUERA', C.muted);
+      G.fervor = clamp(G.fervor - .3, 1, 3); G.nervios = clamp(G.nervios + 4);
+      sfx('miss'); return after();
+    }
+    if (G.stuck.some(k => Math.hypot(k.x - x, k.y - y) < 3.5)) {
+      pop(x, y, '¡CHOCA!', C.muted);
+      G.fervor = clamp(G.fervor - .2, 1, 3); G.nervios = clamp(G.nervios + 6); G.shake = 3;
+      sfx('clank'); return after();
+    }
+    let best = 1e9, zone = null;
+    for (const c of caps(G.pose)) { const d = segDist(x, y, c) - c.r; if (d < best) { best = d; zone = c.z; } }
+    if (best <= 0) {
+      if (G.dice) {
+        G.dice = false; G.knives++;
+        pop(x, y, 'LOS DADOS: REPITE', C.amber); sfx('clank'); G.shake = 3;
+        return after();
+      }
+      const dmg = { cabeza: 55, torso: 30, brazo: 16, pierna: 18 }[zone];
+      G.sangre += dmg; G.wounds++;
+      G.miedo = clamp(G.miedo + 30); G.nervios = clamp(G.nervios + 15);
+      G.fervor = clamp(G.fervor + .2, 1, 3);
+      G.stuck.push({ x, y, b: true }); addBlood(x, y, 8);
+      G.shake = 8;
+      pop(x, y, '¡HERIDA EN ' + zone.toUpperCase() + '!', C.blood);
+      sfx('hit'); return after();
+    }
+    let base, label, fv, fm, nv;
+    if (best <= 3) { base = 30; label = 'ROCE'; fv = .35; fm = 12; nv = 6; }
+    else if (best <= 8) { base = 15; label = 'CERCA'; fv = .15; fm = 6; nv = 3; }
+    else if (best <= 16) { base = 6; label = ''; fv = 0; fm = 2; nv = 1; }
+    else { base = 2; label = 'LEJOS'; fv = -.15; fm = 0; nv = 0; }
+    let petition = false;
+    if (G.spot && Math.hypot(x - G.spot.x, y - G.spot.y) <= G.spot.r + .8) { base *= 3; label = '¡PETICIÓN!'; fv += .5; petition = true; }
+    const pay = Math.round(base * G.fervor);
+    G.earned += pay; G.total += pay;
+    G.fervor = clamp(G.fervor + fv, 1, 3);
+    G.miedo = clamp(G.miedo + fm); G.nervios = clamp(G.nervios + nv);
+    G.stuck.push({ x, y });
+    G.shake = base >= 30 ? 5 : 2;
+    const good = label === 'ROCE' || petition;
+    pop(x, y, '+$' + pay + (label ? ' ' + label : ''), good ? C.amber : C.term);
+    sfx(good ? 'roce' : 'thunk');
+    if (petition) newSpot();
+    after();
+  }
+
+  function after() {
+    if (G.wounds > 0) {
+      G.sangre += 3 * G.wounds;
+      const cs = caps(G.pose); addBlood(cs[4].ax, 108, 2);
+    }
+    if (G.calm > 0) G.calm--;
+    G.sangre = Math.min(100, G.sangre);
+    hud();
+    if (G.sangre >= 100) { schedule(() => lose('sangre'), 900); return; }
+    if (G.knives <= 0) schedule(finishAct, 800);
+  }
+  function schedule(fn, ms) {
+    G.state = 'wait';
+    clearTimeout(G.endTimer);
+    G.endTimer = setTimeout(fn, ms);
+  }
+
+  function newSpot() {
+    for (let i = 0; i < 60; i++) {
+      const cs = caps(G.pose);
+      const c = cs[Math.random() * cs.length | 0];
+      const t = Math.random();
+      const px = c.ax + (c.bx - c.ax) * t, py = c.ay + (c.by - c.ay) * t;
+      const ang = Math.random() * Math.PI * 2, d = c.r + 6 + Math.random() * 3;
+      const x = px + Math.cos(ang) * d, y = py + Math.sin(ang) * d;
+      if (cs.every(k => segDist(x, y, k) - k.r >= 4) && Math.hypot(x - BX, y - BY) < BR - 8 && G.stuck.every(k => Math.hypot(k.x - x, k.y - y) > 6)) {
+        G.spot = { x, y, r: 4 }; return;
+      }
+    }
+    G.spot = null;
+  }
+
+  function useItem(k) {
+    if (!G || G.state !== 'play' || G.flying || !G.items[k]) return;
+    const a = ACTS[G.act];
+    if (k === 'cerilla' && !a.dark) return flash('En este acto hay luz.');
+    if (k === 'venda' && G.wounds === 0) return flash('No está sangrando.');
+    if (k === 'ojo' && G.ojoOn) return;
+    if (k === 'dados' && G.dice) return;
+    if (k === 'cig' && G.calm > 0) return flash('Ya tienes el pulso firme.');
+    G.items[k]--; sfx('item');
+    if (k === 'cig') { G.nervios = clamp(G.nervios - 35); G.calm = 3; flash('Pulso firme durante 3 tiros.'); }
+    if (k === 'ojo') { G.ojo = decideFlinch(); G.ojoOn = true; G.target = { ...G.pose }; G.snap = false; flash(G.ojo ? 'La silueta azul es donde estará cuando lances.' : 'No se moverá en el próximo tiro.'); }
+    if (k === 'venda') { G.wounds = 0; G.sangre = Math.max(0, G.sangre - 5); flash('Hemorragia cortada.'); }
+    if (k === 'trago') { G.miedo = clamp(G.miedo - 45); flash('Bebe a tragos. Se calma un poco.'); }
+    if (k === 'cerilla') { G.lightUntil = G.t + 4; flash('Cuatro segundos de luz.'); }
+    if (k === 'dados') { G.dice = true; flash('Dados preparados.'); }
+    hud();
+  }
+
+  function plantarse() {
+    if (!G || G.state !== 'play' || G.flying) return;
+    const a = ACTS[G.act];
+    if (G.earned < a.quota || G.knives <= 0) return;
+    G.saved = G.knives; G.knives = 0;
+    actWon();
+  }
+
+  function finishAct() {
+    if (G.earned >= ACTS[G.act].quota) actWon();
+    else lose('cuota');
+  }
+
+  function actWon() {
+    const a = ACTS[G.act];
+    G.state = 'between';
+    let reward = '';
+    if (G.earned >= a.quota * 1.5) {
+      const keys = Object.keys(ITEMS);
+      const k = keys[Math.random() * keys.length | 0];
+      G.items[k]++;
+      reward = `<p class="tip">Bis. El público tira al escenario: ${ITEMS[k].name}.</p>`;
+    }
+    const stats = `<p class="stats">Cobrado: $${G.earned} de $${a.quota}<br>Cuchillos guardados: ${G.saved}<br>Sangre: ${Math.round(G.sangre)} · heridas abiertas: ${G.wounds}</p>`;
+    G.miedo = clamp(G.miedo * .7); G.nervios = clamp(G.nervios - 20);
+    G.act++;
+    hud();
+    if (G.act >= ACTS.length) return win();
+    const n = ACTS[G.act];
+    setCard(`<div class="act-tag">Acto ${a.n} superado</div>${stats}${reward}
+      <h2 style="margin-top:14px">Acto ${n.n} · ${n.name}</h2>
+      <p>${n.rule}</p>
+      <p class="stats">Cuota: $${n.quota} · Cuchillos: ${5 + G.saved}</p>
+      <p class="ser">${n.ser}</p>`, 'Subir al escenario', beginAct);
+  }
+
+  function lose(reason) {
+    G.state = 'lost';
+    const L = LOSS[reason];
+    const a = ACTS[G.act];
+    setCard(`<div class="act-tag">Contrato roto · acto ${a.n}</div>
+      <h2>${L.title}</h2>
+      <p>${L.text}</p>
+      <p class="stats">Cobrado en total: $${G.total}</p>
+      <p class="tip">Lo que has aprendido: ${L.tip}</p>`, 'Repetir el contrato', () => { attempts++; newRun(); showIntro(); });
+  }
+
+  function win() {
+    G.state = 'won';
+    setCard(`<div class="act-tag">Contrato firmado · intento ${attempts}</div>
+      <h2>El ser firma</h2>
+      <p class="stats">Total cobrado: $${G.total}<br>Sangre del forastero: ${Math.round(G.sangre)} / 100<br>Objetos sin usar: ${Object.values(G.items).reduce((s, v) => s + v, 0)}</p>
+      <p class="ser">«Mañana traeré a alguien que usted conoce.»</p>
+      <p>Repite para cobrar más: el dinero es lo que mediría tu progreso entre contratos.</p>`, 'Jugar otra vez', () => { attempts++; newRun(); showIntro(); });
+  }
+
+  function beginAct() {
+    const a = ACTS[G.act];
+    G.knives = 5 + G.saved; G.savedShown = G.saved; G.saved = 0;
+    G.earned = 0; G.stuck = []; G.spot = null; G.flying = null; G.ojo = null; G.ojoOn = false;
+    G.fervor = 1 + Math.max(0, G.fervor - 1) * .5;
+    G.lightT = 0; G.lightUntil = -1; G.moveT = 2; G.holding = false; G.holdT = 0;
+    if (a.petition) newSpot();
+    G.state = 'play';
+    hideCard(); hud();
+  }
+
+  function showIntro() {
+    const a = ACTS[0];
+    setCard(`<div class="act-tag">Contrato I · intento ${attempts}</div>
+      <h2>Acto I · ${a.name}</h2>
+      <p>${a.rule}</p>
+      <p>El público paga por lo cerca que clavas del cuerpo, multiplicado por su fervor. Llega a la cuota antes de quedarte sin cuchillos. Si le das, sangra, y la herida sigue sangrando en cada tiro.</p>
+      <p class="stats">Cuota: $${a.quota} · Cuchillos: 5</p>
+      <p class="ser">${a.ser}</p>`, 'Subir al escenario', beginAct);
+    hud();
+  }
+
+  /* ---------- Interfaz ---------- */
+  const card = $('card'), cardInner = $('cardInner');
+  function setCard(html, label, fn) {
+    cardInner.innerHTML = html;
+    const b = document.createElement('button');
+    b.className = 'btn'; b.type = 'button'; b.textContent = label;
+    b.addEventListener('click', () => { ensureAudio(); fn(); });
+    cardInner.appendChild(b);
+    card.hidden = false;
+    setTimeout(() => { try { b.focus({ preventScroll: true }); } catch (e) {} }, 30);
+  }
+  function hideCard() { card.hidden = true; }
+
+  const mesa = $('mesa');
+  Object.entries(ITEMS).forEach(([k, it]) => {
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'item'; b.id = 'item-' + k; b.dataset.k = k;
+    b.innerHTML = `<b>${it.name}</b><span class="n" id="n-${k}">0</span><small>${it.desc} <span class="k">[${it.key}]</span></small>`;
+    b.addEventListener('click', () => { ensureAudio(); useItem(k); });
+    mesa.appendChild(b);
+  });
+
+  function setBar(id, pct) { $(id).style.width = Math.max(0, Math.min(100, pct)) + '%'; }
+  function hud() {
+    if (!G) return;
+    const a = ACTS[Math.min(G.act, ACTS.length - 1)];
+    $('actLabel').textContent = `Acto ${a.n} · ${a.name}`;
+    $('pay').textContent = `$${G.earned} / $${a.quota}`;
+    setBar('payBar', G.earned / a.quota * 100);
+    $('total').textContent = '$' + G.total;
+    const kn = $('knives'); kn.innerHTML = '';
+    for (let i = 0; i < G.knives; i++) { const e = document.createElement('i'); if (i >= G.knives - Math.min(G.knives, G.savedShown)) e.className = 'saved'; kn.appendChild(e); }
+    $('vFervor').textContent = '×' + G.fervor.toFixed(1); setBar('mFervor', (G.fervor - 1) / 2 * 100);
+    $('vSangre').textContent = Math.round(G.sangre); setBar('mSangre', G.sangre);
+    $('vMiedo').textContent = Math.round(G.miedo); setBar('mMiedo', G.miedo);
+    $('vNervios').textContent = Math.round(G.nervios); setBar('mNervios', G.nervios);
+    const playing = G.state === 'play' && !G.flying;
+    Object.keys(ITEMS).forEach(k => {
+      $('n-' + k).textContent = '×' + G.items[k];
+      $('item-' + k).disabled = !playing || !G.items[k];
+    });
+    $('plantar').disabled = !(playing && G.earned >= a.quota && G.knives > 0);
+    const st = [];
+    if (G.statusMsg && G.t < G.statusUntil) st.push(`<span class="ok">${G.statusMsg}</span>`);
+    if (G.wounds > 0) st.push(`Hemorragia: +${3 * G.wounds} de sangre por tiro`);
+    if (G.calm > 0) st.push(`<span class="ok">Pulso firme: ${G.calm} tiros</span>`);
+    if (G.dice) st.push(`<span class="ok">Dados preparados</span>`);
+    $('status').innerHTML = st.join(' · ');
+  }
+
+  $('plantar').addEventListener('click', () => { ensureAudio(); plantarse(); });
+  const muteBtn = $('mute');
+  function syncMute() { muteBtn.textContent = 'Sonido: ' + (muted ? 'no' : 'sí'); }
+  syncMute();
+  muteBtn.addEventListener('click', () => {
+    muted = !muted; syncMute(); ensureAudio();
+    try { localStorage.setItem('forastero-mute', muted ? '1' : '0'); } catch (e) {}
+  });
+
+  /* ---------- Entrada ---------- */
+  function setAim(e) {
+    const r = cv.getBoundingClientRect();
+    const off = e.pointerType === 'touch' ? 46 : 0;
+    G.aim.x = clamp((e.clientX - r.left) / r.width * W, 0, W);
+    G.aim.y = clamp((e.clientY - r.top - off) / r.height * H, 0, H);
+  }
+  cv.addEventListener('pointerdown', e => {
+    ensureAudio();
+    if (!G) return;
+    setAim(e);
+    if (G.state !== 'play' || G.flying) return;
+    G.holding = true; G.holdT = 0;
+    try { cv.setPointerCapture(e.pointerId); } catch (err) {}
+    e.preventDefault();
+  });
+  cv.addEventListener('pointermove', e => { if (G && (e.pointerType === 'mouse' || G.holding)) setAim(e); });
+  cv.addEventListener('pointerup', e => { if (G && G.holding) { setAim(e); throwKnife(); } if (G) G.holding = false; });
+  cv.addEventListener('pointercancel', () => { if (G) { G.holding = false; G.holdT = 0; } });
+  cv.addEventListener('contextmenu', e => e.preventDefault());
+
+  const keyMap = {}; Object.entries(ITEMS).forEach(([k, it]) => keyMap[it.key] = k);
+  let spaceDown = false;
+  document.addEventListener('keydown', e => {
+    if ($('panel-play').hidden || !G) return;
+    if (e.code === 'Space') {
+      if (G.state === 'play') {
+        e.preventDefault();
+        if (!spaceDown && !G.flying) { spaceDown = true; ensureAudio(); G.holding = true; G.holdT = 0; }
+      }
+      return;
+    }
+    if (keyMap[e.key]) { ensureAudio(); useItem(keyMap[e.key]); }
+    if (e.key === 'p' || e.key === 'P') plantarse();
+  });
+  document.addEventListener('keyup', e => {
+    if (e.code === 'Space' && spaceDown) { spaceDown = false; e.preventDefault(); if (G && G.holding) throwKnife(); if (G) G.holding = false; }
+  });
+
+  /* ---------- Pestañas ---------- */
+  const tabs = [['tab-play', 'panel-play'], ['tab-sys', 'panel-sys']];
+  function selectTab(id) {
+    tabs.forEach(([t, p]) => { const on = t === id; $(t).setAttribute('aria-selected', on ? 'true' : 'false'); $(p).hidden = !on; });
+    try { localStorage.setItem('forastero-tab', id); } catch (e) {}
+  }
+  tabs.forEach(([t]) => $(t).addEventListener('click', () => selectTab(t)));
+  if (location.hash === '#sistema') selectTab('tab-sys');
+
+  /* ---------- Bucle ---------- */
+  let last = performance.now(), hudT = 0;
+  function update(dt) {
+    G.t += dt;
+    if (G.shake > 0) G.shake = Math.max(0, G.shake - dt * 30);
+    G.pops.forEach(p => { p.t += dt; p.y -= 14 * dt; });
+    G.pops = G.pops.filter(p => p.t < 1.2);
+    if (!G.ojoOn && !G.flying) {
+      G.moveT -= dt;
+      G.teleg = G.moveT < .55;
+      if (G.moveT <= 0) { G.target = randomPose(); G.moveT = interval() * rnd(.7, 1.3); G.snap = false; }
+    }
+    const rate = G.snap ? 28 : 5;
+    const k = 1 - Math.exp(-rate * dt);
+    for (const key in G.pose) G.pose[key] += (G.target[key] - G.pose[key]) * k;
+    if (G.state === 'play') {
+      G.fervor = Math.max(1, G.fervor - .1 * dt);
+      G.lightT += dt;
+      if (G.holding) G.holdT += dt;
+    }
+    if (G.flying) {
+      G.flying.t += dt / G.flying.dur;
+      if (G.flying.t >= 1) { const f = G.flying; G.flying = null; G.snap = false; impact(f.x1, f.y1); }
+    }
+    hudT += dt;
+    if (hudT > .25) { hudT = 0; hud(); }
+  }
+  function loop(now) {
+    const dt = Math.min(.05, (now - last) / 1000); last = now;
+    if (G) { update(dt); draw(); }
+    requestAnimationFrame(loop);
+  }
+
+  function start() {
+    newRun();
+    showIntro();
+    requestAnimationFrame(loop);
+  }
+  if (window.claude && window.claude.hot && window.claude.hot.ready) window.claude.hot.ready(start);
+  else start();
+})();
+</script>
+
+</body></html>
